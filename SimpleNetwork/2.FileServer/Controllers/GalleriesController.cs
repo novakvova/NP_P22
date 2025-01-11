@@ -31,7 +31,13 @@ namespace _2.FileServer.Controllers
                 using Image image = Image.Load(byteArray);
                 
                 // Масштабуємо зображення до 200x200
-                image.Mutate(x => x.Resize(200, 200));
+                image.Mutate(x => x.Resize(
+                    new ResizeOptions
+                    {
+                        Size = new Size(600, 600), // Максимальний розмір
+                        Mode = ResizeMode.Max // Зберігає пропорції без обрізання
+                    }
+                    ));
 
                 string folderName = "uploads";
                 string pathFolder = Path.Combine(Directory.GetCurrentDirectory(), folderName);
