@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleClient", "SimpleClien
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "2.FileServer", "2.FileServer\2.FileServer.csproj", "{8D498174-DDF0-412C-857A-8EC73EF10C97}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3.WpfAppUploader", "3.WpfAppUploader\3.WpfAppUploader.csproj", "{666DEBB5-A2D3-4807-856C-BE622CB5435C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{8D498174-DDF0-412C-857A-8EC73EF10C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D498174-DDF0-412C-857A-8EC73EF10C97}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D498174-DDF0-412C-857A-8EC73EF10C97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{666DEBB5-A2D3-4807-856C-BE622CB5435C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{666DEBB5-A2D3-4807-856C-BE622CB5435C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{666DEBB5-A2D3-4807-856C-BE622CB5435C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{666DEBB5-A2D3-4807-856C-BE622CB5435C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
