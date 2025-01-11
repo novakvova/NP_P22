@@ -5,8 +5,57 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:_3.WpfAppUploader"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="MainWindow" MinHeight="500" MinWidth="700" MaxHeight="700" MaxWidth="1000" Background="Beige">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Width" Value="150"></Setter>
+            <Setter Property="HorizontalAlignment" Value="Left"></Setter>
+            <Setter Property="FontSize" Value="18"></Setter>
+            <Setter Property="Margin" Value="20, 5"></Setter>
+            <Setter Property="Padding" Value="3"></Setter>
+            <Setter Property="Background" Value="#FFF0F09C"></Setter>
+            <Setter Property="FontFamily" Value="Bahnschrift"></Setter>
+        </Style>
 
+        <Style TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"></Setter>
+            <Setter Property="FontFamily" Value="Bahnschrift"></Setter>
+            <Setter Property="Margin" Value="20, 5"></Setter>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Width" Value="150"></Setter>
+            <Setter Property="FontSize" Value="18"></Setter>
+            <Setter Property="Padding" Value="3"></Setter>
+            <Setter Property="HorizontalAlignment" Value="Left"></Setter>
+            <Setter Property="Margin" Value="20, 5"></Setter>
+        </Style>
+
+        <Style TargetType="Image">
+            <Setter Property="Margin" Value="20"></Setter>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.5*"></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+            <TextBlock>Enter port:</TextBlock>
+            <TextBox x:Name="portTB">https://kukumber.itstep.click</TextBox>
+            <Button x:Name="connectBT" Click="connectBT_Click">Connect</Button>
+
+            <TextBlock Margin="20,40,20,5">Upload image:</TextBlock>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="imagePathTB" IsEnabled="False"></TextBox>
+                <Button x:Name="loadImagePathBT" Click="loadImagePathBT_Click" Width="20" Margin="-10, 5" IsEnabled="False">...</Button>
+            </StackPanel>
+            <Button x:Name="uploadBT" Click="uploadBT_Click" IsEnabled="False">Upload</Button>
+        </StackPanel>
+
+        <Viewbox Grid.Column="1">
+            <Image x:Name="imageLabel" Source="/Images/StandartImage.jpg"></Image>
+        </Viewbox>
     </Grid>
 </Window>
