@@ -1,0 +1,31 @@
+﻿<Window x:Class="_5.WPF_Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:_5.WPF_Client"
+        mc:Ignorable="d"
+        Title="Chat" Height="354" Width="699" FontSize="16pt" Closing="Window_Closing">
+    <Window.Background>
+        <ImageBrush ImageSource="https://png.pngtree.com/thumb_back/fh260/background/20200714/pngtree-modern-double-color-futuristic-neon-background-image_351866.jpg" Stretch="Uniform"></ImageBrush>
+    </Window.Background>
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="HotPink"></Setter>
+            <Setter Property="BorderBrush" Value="Purple"></Setter>
+            <Setter Property="BorderThickness" Value="3"></Setter>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Label Content="Повідомлення" HorizontalAlignment="Left" Margin="100,10,0,0" VerticalAlignment="Top" Foreground="LightCoral"/>
+        <TextBox Name="txtText" Text="Привіт!" HorizontalAlignment="Left" Margin="80,54,0,0"  TextWrapping="Wrap" VerticalAlignment="Top" Width="387"/>
+        <Button Content="Надіслати" Name="btnSend" HorizontalAlignment="Left" Margin="490,50,0,0" VerticalAlignment="Top" 
+        RenderTransformOrigin="-0.261,0.222" Height="40" Width="128" IsEnabled="False" Click="btnSend_Click" />
+        <ListBox Name="lbInfo" HorizontalAlignment="Left" Height="180" Margin="80,85,0,45"  Width="375"/>
+        <Button x:Name="btnPhotoSelect" Width="130" Height="40" Margin="425,-95,0,0" FontSize="13" Click="btnPhotoSelect_Click">Вибрати фото...</Button>
+
+        <Label Content="Ім'я" HorizontalAlignment="Left" Margin="480,134,0,0" VerticalAlignment="Top" Foreground="DeepSkyBlue"/>
+        <TextBox Name="txtUserName" HorizontalAlignment="Left" Margin="460,171,0,0" Text="Вова" TextWrapping="Wrap" VerticalAlignment="Top" Width="160"/>
+        <Button Name="btnConnect" Content="Connect" HorizontalAlignment="Left" Margin="470,218,0,0" VerticalAlignment="Top" Height="46" Width="128" Click="btnConnect_Click"/>
+    </Grid>
+</Window>
