@@ -75,45 +75,50 @@ namespace _6.NovaPoshta
         {
             if (!_context.Cities.Any()) // Якщо таблиця пуста
             {
-                var modelRequest = new CityPostModel
+                var listAreas = GetListAreas();
+                foreach(var area in listAreas)
                 {
-                    ApiKey = "c44c00290a5023fcc0ff81091471dda1",
-                    MethodProperties = new MethodCityProperties() { }
-                };
-
-                string json = JsonConvert.SerializeObject(modelRequest, new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    Formatting = Formatting.Indented // Для кращого вигляду (не обов'язково)
-                });
-                HttpContent context = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = _httpClient.PostAsync(_url, context).Result;
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResp = response.Content.ReadAsStringAsync().Result; //Читаємо відповідь від сервера
-                    var result = JsonConvert.DeserializeObject<CityResponse>(jsonResp);
-                    if (result != null && result.Data != null && result.Success)
+                    var modelRequest = new CityPostModel
                     {
-                        Console.WriteLine("List cities count {0}", result.Data.Count);
-                        var listAreas = GetListAreas();
-                        foreach (var city in result.Data)
+                        ApiKey = "c44c00290a5023fcc0ff81091471dda1",
+                        MethodProperties = new MethodCityProperties() 
                         {
-                            var area = listAreas.SingleOrDefault(x => x.Ref == city.Area);
-                            if (area != null) {
-                                var cityEntity = new CityEntity
-                                {
-                                    Ref = city.Ref,
-                                    Description = city.Description,
-                                    TypeDescription = city.SettlementTypeDescription,
-                                    AreaRef = city.Area,
-                                    AreaId =area.Id
-                                };
-                                _context.Cities.Add(cityEntity);
-                            }
+                            AreaRef = area.Ref
                         }
-                        _context.SaveChanges();
+                    };
+
+                    string json = JsonConvert.SerializeObject(modelRequest, new JsonSerializerSettings
+                    {
+                        Formatting = Formatting.Indented // Для кращого вигляду (не обов'язково)
+                    });
+                    HttpContent context = new StringContent(json, Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = _httpClient.PostAsync(_url, context).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string jsonResp = response.Content.ReadAsStringAsync().Result; //Читаємо відповідь від сервера
+                        var result = JsonConvert.DeserializeObject<CityResponse>(jsonResp);
+                        if (result != null && result.Data != null && result.Success)
+                        {
+                            foreach (var city in result.Data)
+                            {
+                                if (area != null)
+                                {
+                                    var cityEntity = new CityEntity
+                                    {
+                                        Ref = city.Ref,
+                                        Description = city.Description,
+                                        TypeDescription = city.SettlementTypeDescription,
+                                        AreaRef = city.Area,
+                                        AreaId = area.Id
+                                    };
+                                    _context.Cities.Add(cityEntity);
+                                }
+                            }
+                            _context.SaveChanges();
+                        }
                     }
                 }
+               
             }
         }
 
