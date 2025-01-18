@@ -34,5 +34,7 @@ namespace _6.NovaPoshta.Data.Entities
         [ForeignKey("Area")]
         public int AreaId { get; set; }
         public AreaEntity? Area { get; set; }
+
+        public ICollection<DepartmentEntity> Departments { get; set; } = new List<DepartmentEntity>();
     }
 }

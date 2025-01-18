@@ -14,6 +14,7 @@ namespace _6.NovaPoshta
             stopWatch.Start();
             novaPoshtaService.SeedAreas();
             novaPoshtaService.SeedCities();
+            novaPoshtaService.SeedDepartments();
             stopWatch.Stop();
             // Get the elapsed time as a TimeSpan value.
             TimeSpan ts = stopWatch.Elapsed;
