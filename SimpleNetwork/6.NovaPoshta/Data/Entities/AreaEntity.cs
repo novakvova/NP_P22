@@ -20,4 +20,6 @@ public class AreaEntity
     [Required]
     [StringLength(255)]
     public string Description { get; set; } = String.Empty; // Відображає "Description"
+
+    public ICollection<CityEntity> Cities { get; set; } = new List<CityEntity>();
 }
