@@ -12,6 +12,7 @@ namespace _6.NovaPoshta.Data
     public class BombaDbContext : DbContext
     {
         public DbSet<AreaEntity> Areas { get; set; }
+        public DbSet<CityEntity> Cities { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

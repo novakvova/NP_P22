@@ -9,8 +9,9 @@ namespace _6.NovaPoshta
             Console.InputEncoding = Encoding.UTF8;
             Console.OutputEncoding = Encoding.UTF8;
             NovaPoshtaService novaPoshtaService = new NovaPoshtaService();
-            //novaPoshtaService.SeedAreas();
-            
+            novaPoshtaService.SeedAreas();
+            novaPoshtaService.SeedCities();
+
             var list = novaPoshtaService.GetListAreas();
 
         }
