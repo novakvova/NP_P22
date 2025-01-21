@@ -15,6 +15,22 @@ namespace _7.SMTP
                 To = "novakvova@gmail.com"
             };
 
+            string pathFile = @"D:\ss.webp";
+
+            var attachment = new MimePart("image", "webp")
+            {
+                FileName = "Привіт друже",
+                Content = new MimeContent(File.OpenRead(pathFile))
+            };
+            var body = new TextPart("plain")
+            {
+                Text = message.Body
+            };
+            var multipart = new Multipart("mixed");
+            multipart.Add(body);
+            multipart.Add(attachment);
+
+
             // Створення повідомлення
             var emailMessage = new MimeMessage();
             emailMessage.From.Add(new MailboxAddress(config.From));
@@ -22,10 +38,7 @@ namespace _7.SMTP
             emailMessage.Subject = message.Subject;
 
             // Тіло повідомлення
-            emailMessage.Body = new TextPart("plain")
-            {
-                Text = message.Body
-            };
+            emailMessage.Body = multipart;
 
             using var client = new SmtpClient();
             try
