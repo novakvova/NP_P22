@@ -7,10 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using _6.NovaPoshta.Data;
 using _6.NovaPoshta.Data.Entities;
+using _6.NovaPoshta.Mapping;
 using _6.NovaPoshta.Models;
 using _6.NovaPoshta.Models.Area;
 using _6.NovaPoshta.Models.City;
 using _6.NovaPoshta.Models.Department;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Newtonsoft.Json;
@@ -23,6 +25,8 @@ namespace _6.NovaPoshta
         private readonly HttpClient _httpClient;
         private readonly string _url;
         private readonly BombaDbContext _context;
+        private readonly int _procesLimit;
+        private readonly IMapper _mapper;
 
         public NovaPoshtaService()
         {
@@ -30,9 +34,18 @@ namespace _6.NovaPoshta
             _url = "https://api.novaposhta.ua/v2.0/json/";
             _context = new BombaDbContext();
             _context.Database.Migrate(); //накатує на БД усі міграції, який там немає
+
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<MappingProfile>();
+            });
+
+            _mapper = config.CreateMapper();
+
+            _procesLimit = Environment.ProcessorCount-2;//10;
         }
 
-        public void SeedAreas()
+        public async Task SeedAreas()
         {
             if (!_context.Areas.Any()) // Якщо таблиця пуста
             {
@@ -57,121 +70,135 @@ namespace _6.NovaPoshta
                     var result = JsonConvert.DeserializeObject<AreaResponse>(jsonResp);
                     if (result != null && result.Data != null && result.Success)
                     {
-                        foreach (var item in result.Data)
+                        using var semaphore = new SemaphoreSlim(_procesLimit);
+
+                        await Parallel.ForEachAsync(result.Data, async (item, x) =>
                         {
-                            var entity = new AreaEntity
+                            try
                             {
-                                Ref = item.Ref,
-                                AreasCenter = item.AreasCenter,
-                                Description = item.Description,
-                            };
-                            _context.Areas.Add(entity);
-                            _context.SaveChanges();
-                        }
+                                var entity = _mapper.Map<AreaEntity>(item);
+                                using var localContext = new BombaDbContext();
+                                await localContext.Areas.AddAsync(entity);
+                                await localContext.SaveChangesAsync();
+                            }
+                            finally
+                            {
+                                semaphore.Release();
+                            }
+                        });
                     }
                 }
             }
         }
 
-        public void SeedCities()
+        public async Task SeedCities()
         {
             if (!_context.Cities.Any()) // Якщо таблиця пуста
             {
                 var listAreas = GetListAreas();
-                foreach (var area in listAreas)
+                using var semaphore = new SemaphoreSlim(_procesLimit);
+
+                await Parallel.ForEachAsync(listAreas, async (area, x) =>
                 {
-                    Console.WriteLine("Seed area {0}...", area.Description);
-                    var modelRequest = new CityPostModel
+                    await semaphore.WaitAsync();
+                    try
                     {
-                        ApiKey = "c44c00290a5023fcc0ff81091471dda1",
-                        MethodProperties = new MethodCityProperties()
+                        Console.WriteLine("Seed area {0}...", area.Description);
+                        var modelRequest = new CityPostModel
                         {
-                            AreaRef = area.Ref
-                        }
-                    };
-
-                    string json = JsonConvert.SerializeObject(modelRequest, new JsonSerializerSettings
-                    {
-                        Formatting = Formatting.Indented // Для кращого вигляду (не обов'язково)
-                    });
-                    HttpContent context = new StringContent(json, Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = _httpClient.PostAsync(_url, context).Result;
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string jsonResp = response.Content.ReadAsStringAsync().Result; //Читаємо відповідь від сервера
-                        var result = JsonConvert.DeserializeObject<CityResponse>(jsonResp);
-                        if (result != null && result.Data != null && result.Success)
-                        {
-                            foreach (var city in result.Data)
+                            ApiKey = "c44c00290a5023fcc0ff81091471dda1",
+                            MethodProperties = new MethodCityProperties()
                             {
-                                var cityEntity = new CityEntity
-                                {
-                                    Ref = city.Ref,
-                                    Description = city.Description,
-                                    TypeDescription = city.SettlementTypeDescription,
-                                    AreaRef = city.Area,
-                                    AreaId = area.Id
-                                };
-                                _context.Cities.Add(cityEntity);
-
+                                AreaRef = area.Ref
                             }
-                            _context.SaveChanges();
+                        };
+
+                        string json = JsonConvert.SerializeObject(modelRequest, new JsonSerializerSettings
+                        {
+                            Formatting = Formatting.Indented // Для кращого вигляду (не обов'язково)
+                        });
+                        HttpContent context = new StringContent(json, Encoding.UTF8, "application/json");
+                        HttpResponseMessage response = _httpClient.PostAsync(_url, context).Result;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string jsonResp = response.Content.ReadAsStringAsync().Result; //Читаємо відповідь від сервера
+                            var result = JsonConvert.DeserializeObject<CityResponse>(jsonResp);
+                            if (result != null && result.Data != null && result.Success)
+                            {
+
+                                var cityEntities = result.Data.Select(city =>
+                                {
+                                    var entity = _mapper.Map<CityEntity>(city);
+                                    entity.AreaId = area.Id;
+                                    return entity;
+                                });
+
+                                using var localContext = new BombaDbContext();
+                                await localContext.Cities.AddRangeAsync(cityEntities);
+                                await localContext.SaveChangesAsync();
+                            }
                         }
                     }
-                }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                });
 
             }
         }
 
-        public void SeedDepartments()
+        public async Task SeedDepartments()
         {
             if (!_context.Departments.Any()) // Якщо таблиця пуста
             {
                 var listCities = _context.Cities.ToList();
-                
-                foreach (var city in listCities)
+                using var semaphore = new SemaphoreSlim(_procesLimit);
+                await Parallel.ForEachAsync(listCities, async (city, _) =>
                 {
-                    Console.WriteLine("Seed city {0}...", city.Description);
-                    var modelRequest = new DepartmentPostModel
+                    await semaphore.WaitAsync();
+                    try
                     {
-                        ApiKey = "c44c00290a5023fcc0ff81091471dda1",
-                        MethodProperties = new MethodDepatmentProperties()
+                        Console.WriteLine("Seed city {0}...", city.Description);
+                        var modelRequest = new DepartmentPostModel
                         {
-                            CityRef = city.Ref
-                        }
-                    };
-
-                    string json = JsonConvert.SerializeObject(modelRequest, new JsonSerializerSettings
-                    {
-                        Formatting = Formatting.Indented // Для кращого вигляду (не обов'язково)
-                    });
-                    HttpContent context = new StringContent(json, Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = _httpClient.PostAsync(_url, context).Result;
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string jsonResp = response.Content.ReadAsStringAsync().Result; //Читаємо відповідь від сервера
-                        var result = JsonConvert.DeserializeObject<DepartmentResponse>(jsonResp);
-                        if (result != null && result.Data != null && result.Success)
-                        {
-                            foreach (var dep in result.Data)
+                            ApiKey = "c44c00290a5023fcc0ff81091471dda1",
+                            MethodProperties = new MethodDepatmentProperties()
                             {
-                                var departmentEntity = new DepartmentEntity
-                                {
-                                    Ref = dep.Ref,
-                                    Description = dep.Description,
-                                    Address = dep.ShortAddress,
-                                    Phone = dep.Phone,
-                                    CityRef = dep.CityRef,
-                                    CityId = city.Id
-
-                                };
-                                _context.Departments.Add(departmentEntity);
-
+                                CityRef = city.Ref
                             }
-                            _context.SaveChanges();
+                        };
+
+                        string json = JsonConvert.SerializeObject(modelRequest, new JsonSerializerSettings
+                        {
+                            Formatting = Formatting.Indented // Для кращого вигляду (не обов'язково)
+                        });
+                        HttpContent context = new StringContent(json, Encoding.UTF8, "application/json");
+                        HttpResponseMessage response = _httpClient.PostAsync(_url, context).Result;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            string jsonResp = response.Content.ReadAsStringAsync().Result; //Читаємо відповідь від сервера
+                            var result = JsonConvert.DeserializeObject<DepartmentResponse>(jsonResp);
+                            if (result != null && result.Data != null && result.Success)
+                            {
+                                var departmentEntities = result.Data.Select(dep =>
+                                {
+                                    var entity = _mapper.Map<DepartmentEntity>(dep);
+                                    entity.CityId = city.Id;
+                                    return entity;
+                                });
+
+                                using var localContext = new BombaDbContext();
+                                await localContext.Departments.AddRangeAsync(departmentEntities);
+                                await localContext.SaveChangesAsync();
+                            }
                         }
                     }
-                }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                });
 
             }
         }
